@@ -35,7 +35,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const IPlayer(title: 'Flutter Demo Home Page'),
+      home: const IPlayer(
+        title: 'Flutter Demo IPlayer',
+        sourceUrl: 'https://www.pexels.com/download/video/4645769/',
+      ),
     );
   }
 }

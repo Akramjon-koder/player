@@ -14,9 +14,13 @@ class IPlayer extends StatefulWidget {
   final String title;
   final Color primaryColor;
   final Color secondaryColor;
+
+  /// Videoga havola
+  final String sourceUrl;
   const IPlayer({
     super.key,
     required this.title,
+    required this.sourceUrl,
     this.primaryColor = Colors.red,
     this.secondaryColor = Colors.grey,
   });
@@ -351,32 +355,36 @@ class _IPlayerState extends State<IPlayer> {
 
   void _setPlayer() async {
     bool playingValue = false, buferingValue = false;
-    playerController = VideoPlayerController.asset('assets/raw/video.mp4')
-      ..initialize().then((_) {
-        playerController.play();
-        playerController.setLooping(true);
-        playerController.addListener(() {
-          _positionController.sink.add(_sliderValue);
-          if (playerController.value.isCompleted) {
-            Wakelock.disable();
-          }
-          if (!_isSliderTouch &&
-              !playerController.value.isBuffering &&
-              playerController.value.duration != Duration.zero) {
-            _sliderValue = playerController.value.position.inMilliseconds /
-                playerController.value.duration.inMilliseconds;
-            _sliderController.sink.add(_sliderValue);
-          }
-          if (playerController.value.isPlaying != playingValue ||
-              playerController.value.isBuffering != buferingValue) {
-            playingValue = playerController.value.isPlaying;
-            buferingValue = playerController.value.isBuffering;
-            _centerWidgetsController.sink.add(playingValue);
-          }
-        });
-        unHide();
-        setState(() {});
-      });
+    if (widget.sourceUrl.contains('http')) {
+      playerController =
+          VideoPlayerController.networkUrl(Uri.parse(widget.sourceUrl))
+            ..initialize().then((_) {
+              playerController.play();
+              playerController.setLooping(true);
+              playerController.addListener(() {
+                _positionController.sink.add(_sliderValue);
+                if (playerController.value.isCompleted) {
+                  Wakelock.disable();
+                }
+                if (!_isSliderTouch &&
+                    !playerController.value.isBuffering &&
+                    playerController.value.duration != Duration.zero) {
+                  _sliderValue =
+                      playerController.value.position.inMilliseconds /
+                          playerController.value.duration.inMilliseconds;
+                  _sliderController.sink.add(_sliderValue);
+                }
+                if (playerController.value.isPlaying != playingValue ||
+                    playerController.value.isBuffering != buferingValue) {
+                  playingValue = playerController.value.isPlaying;
+                  buferingValue = playerController.value.isBuffering;
+                  _centerWidgetsController.sink.add(playingValue);
+                }
+              });
+              unHide();
+              setState(() {});
+            });
+    }
   }
 
   void unHide() {
