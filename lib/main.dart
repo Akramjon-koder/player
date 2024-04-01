@@ -37,7 +37,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const IPlayer(
         title: 'Flutter Demo IPlayer',
-        sourceUrl: 'https://www.pexels.com/download/video/4645769/',
+        sourceUrl:
+            'https://basmalaplay.uz/uploads/media/disk2/stream/3216/ff284f5f9884fca37f916e96b7d4997f/185a45e0d753ece5c6fa20ab69fecd46.m3u8',
       ),
     );
   }

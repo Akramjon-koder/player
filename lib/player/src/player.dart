@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:player_test/main.dart';
+import 'package:player_test/player/src/quality_loader.dart';
 import 'package:player_test/player/src/touch_tools.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
@@ -69,10 +71,15 @@ class _IPlayerState extends State<IPlayer> {
   /// vidgetlarning yopilishini boshqaradi.
   Timer? _hideTimer;
 
+  /// agar video sifatini tanlash mumkin bo'lgan formatda (m3u8) bo'lsa
+  /// video sifatini tanlanishi mumkin.
+  List<String>? qualityList;
+
   @override
   void initState() {
     Wakelock.enable();
     _setPlayer();
+    _setAllOrientation();
     super.initState();
   }
 
@@ -311,6 +318,17 @@ class _IPlayerState extends State<IPlayer> {
                                               }),
                                           const Spacer(),
                                           _tool(
+                                            onTap: () async {
+                                              qualityList ??=
+                                                  await hLSQualityLoader
+                                                      .getQualities(widget
+                                                          .sourceUrl
+                                                          .toString());
+                                              _selectQuality();
+                                            },
+                                            icon: FontAwesomeIcons.film,
+                                          ),
+                                          _tool(
                                             onTap: () => setState(() {
                                               _isBlocked = !_isBlocked;
                                               unHide();
@@ -352,16 +370,16 @@ class _IPlayerState extends State<IPlayer> {
     if (_hideTimer != null) {
       _hideTimer!.cancel();
     }
+    _disableLanscapeMode();
   }
 
   void _setPlayer() async {
-    bool playingValue = false, buferingValue = false;
     if (widget.sourceUrl.contains('http')) {
       playerController =
           VideoPlayerController.networkUrl(Uri.parse(widget.sourceUrl))
             ..initialize().then((_) {
+              bool playingValue = false, buferingValue = false;
               playerController.play();
-              playerController.setLooping(true);
               playerController.addListener(() {
                 _positionController.sink.add(_sliderValue);
                 if (playerController.value.isCompleted) {
@@ -392,12 +410,79 @@ class _IPlayerState extends State<IPlayer> {
         context: context,
         builder: (BuildContext context) {
           return PlayerSourseDialog(
-            data: qualityTitles,
+            data: speedTitles,
             onSelect: (int index) =>
-                playerController.setPlaybackSpeed(qualityValues[index]),
+                playerController.setPlaybackSpeed(speedValues[index]),
           );
         },
       );
+
+  void _selectQuality() async {
+    if (qualityList == null) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PlayerSourseDialog(
+          data: List<String>.generate(qualityList!.length,
+              (index) => qualityList![index].split('_')[1].split('.').first),
+          onSelect: (int index) {
+            final position = playerController.value.position.inMilliseconds;
+            playerController.pause();
+            playerController.removeListener(() {});
+            final loadUrl = widget.sourceUrl
+                    .substring(0, widget.sourceUrl.lastIndexOf('/') + 1) +
+                qualityList![index];
+            playerController =
+                VideoPlayerController.networkUrl(Uri.parse(loadUrl))
+                  ..initialize().then((_) {
+                    playerController.play();
+                    playerController.seekTo(Duration(seconds: position));
+                    bool playingValue = false, buferingValue = false;
+                    playerController.addListener(() {
+                      _positionController.sink.add(_sliderValue);
+                      if (playerController.value.isCompleted) {
+                        Wakelock.disable();
+                      }
+                      if (!_isSliderTouch &&
+                          !playerController.value.isBuffering &&
+                          playerController.value.duration != Duration.zero) {
+                        _sliderValue =
+                            playerController.value.position.inMilliseconds /
+                                playerController.value.duration.inMilliseconds;
+                        _sliderController.sink.add(_sliderValue);
+                      }
+                      if (playerController.value.isPlaying != playingValue ||
+                          playerController.value.isBuffering != buferingValue) {
+                        playingValue = playerController.value.isPlaying;
+                        buferingValue = playerController.value.isBuffering;
+                        _centerWidgetsController.sink.add(playingValue);
+                      }
+                    });
+                    unHide();
+                    setState(() {});
+                  });
+          },
+        );
+      },
+    );
+  }
+
+  Future _setAllOrientation() async {
+    await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
+  }
+
+  Future _disableLanscapeMode() async {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp,
+    ]);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values);
+  }
 
   void unHide() {
     if (_toHideTimeOut == 0 || _hideTimer == null) {

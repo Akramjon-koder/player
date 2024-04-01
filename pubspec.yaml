@@ -16,6 +16,7 @@ dependencies:
   wakelock: ^0.6.2
   font_awesome_flutter: ^10.7.0
   screen_brightness: ^1.0.0
+  dio: ^5.4.2+1
 
 dev_dependencies:
   flutter_test:
