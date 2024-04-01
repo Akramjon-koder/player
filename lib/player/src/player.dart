@@ -8,6 +8,9 @@ import 'package:player_test/player/src/touch_tools.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 
+import 'constants.dart';
+import 'dialog.dart';
+
 class IPlayer extends StatefulWidget {
   /// Videoni yuqori qismida chiqadigan nomi
   /// ushbu nom shu video qayta ko'rilganda pozitsiyasini saqlab qolish uchun ishlatilishi ham mumkin
@@ -315,9 +318,7 @@ class _IPlayerState extends State<IPlayer> {
                                             icon: FontAwesomeIcons.lock,
                                           ),
                                           _tool(
-                                            onTap: () {
-                                              unHide();
-                                            },
+                                            onTap: _setSpeed,
                                             icon: FontAwesomeIcons.gaugeHigh,
                                           ),
                                         ],
@@ -386,6 +387,17 @@ class _IPlayerState extends State<IPlayer> {
             });
     }
   }
+
+  void _setSpeed() => showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return PlayerSourseDialog(
+            data: qualityTitles,
+            onSelect: (int index) =>
+                playerController.setPlaybackSpeed(qualityValues[index]),
+          );
+        },
+      );
 
   void unHide() {
     if (_toHideTimeOut == 0 || _hideTimer == null) {
