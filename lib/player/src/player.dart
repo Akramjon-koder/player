@@ -317,17 +317,19 @@ class _IPlayerState extends State<IPlayer> {
                                                 );
                                               }),
                                           const Spacer(),
-                                          _tool(
-                                            onTap: () async {
-                                              qualityList ??=
-                                                  await hLSQualityLoader
-                                                      .getQualities(widget
-                                                          .sourceUrl
-                                                          .toString());
-                                              _selectQuality();
-                                            },
-                                            icon: FontAwesomeIcons.film,
-                                          ),
+                                          if (widget.sourceUrl
+                                              .contains('.m3u8'))
+                                            _tool(
+                                              onTap: () async {
+                                                qualityList ??=
+                                                    await hLSQualityLoader
+                                                        .getQualities(widget
+                                                            .sourceUrl
+                                                            .toString());
+                                                _selectQuality();
+                                              },
+                                              icon: FontAwesomeIcons.film,
+                                            ),
                                           _tool(
                                             onTap: () => setState(() {
                                               _isBlocked = !_isBlocked;
