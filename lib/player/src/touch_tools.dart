@@ -6,6 +6,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:video_player/video_player.dart';
 
+/// ekranni bosib turishni boshqaruvchi widgetlar
+/// video o'ng yoki chap tomonini uzoq bosib tursa faollashadi
 class TouchTools extends StatefulWidget {
   final double height;
   final VideoPlayerController playerController;

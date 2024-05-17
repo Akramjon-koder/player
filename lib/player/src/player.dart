@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:player_test/main.dart';
 import 'package:player_test/player/src/quality_loader.dart';
+import 'package:player_test/player/src/screen_set/screen_set.dart';
+import 'package:player_test/player/src/screen_set/screen_set_options.dart';
 import 'package:player_test/player/src/touch_tools.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
@@ -17,8 +19,15 @@ class IPlayer extends StatefulWidget {
   /// Videoni yuqori qismida chiqadigan nomi
   /// ushbu nom shu video qayta ko'rilganda pozitsiyasini saqlab qolish uchun ishlatilishi ham mumkin
   final String title;
+
+  /// aktiv bo'lish rangi
   final Color primaryColor;
+
+  /// noaktiv rangi
   final Color secondaryColor;
+
+  /// Qo'shimcha hususiyatlardan foydalanishingiz mumkin
+  final ScreenSetOptions? screenSetOptions;
 
   /// Videoga havola
   final String sourceUrl;
@@ -28,6 +37,7 @@ class IPlayer extends StatefulWidget {
     required this.sourceUrl,
     this.primaryColor = Colors.red,
     this.secondaryColor = Colors.grey,
+    this.screenSetOptions,
   });
 
   @override
@@ -112,8 +122,16 @@ class _IPlayerState extends State<IPlayer> {
                                   Expanded(
                                     child: AspectRatio(
                                       aspectRatio:
-                                          playerController.value.aspectRatio,
-                                      child: VideoPlayer(playerController),
+                                      playerController.value.aspectRatio,
+                                      child: Stack(
+                                        children: [
+                                          VideoPlayer(playerController),
+                                          if(widget.screenSetOptions != null)
+                                            ScreenSet(
+                                              options: widget.screenSetOptions!,
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
